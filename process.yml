@@ -1,0 +1,4 @@
+apps:
+  - script: './back/index.js'
+    exec_mode: 'fork'
+    name: 'glossary-back'

@@ -1,47 +1,20 @@
-import useSWR from "swr";
-
-const fetcher = (url) => fetch(url).then((res) => res.json());
+import { Outlet, Link } from "react-router-dom";
 
 function App() {
-  const { data, error, isLoading } = useSWR(
-    "/api/glossary",
-    fetcher
-  );
-
   return (
     <div id="container">
       <header>
-        <h1>Глоссарий</h1>
+        <h1><Link to="/">Глоссарий</Link></h1>
         <button>
-          Граф
+          <Link to="/graph">Граф</Link>
         </button>
         <div className="card small copyright">
           <span className="header">Игорь Агарков (c) 2025</span>
         </div>
       </header>
 
-      <div className="terms-container">
-      {
-        error
-        ? (
-          'Ошибка загрузки...'
-        )
-        : (
-          isLoading
-          ? (
-            'Загрузка...'
-          )
-          : (
-            data.map((term) => (
-              <div key={term.id} className="card big hover">
-                <div className="header">{term.name}</div>
-                <div>{term.description}</div>
-              </div>
-            ))
-          )
-        )
-      }
-      </div>
+      <Outlet />
+
     </div>
   )
 }

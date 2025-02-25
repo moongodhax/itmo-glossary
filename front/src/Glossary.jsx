@@ -1,30 +1,28 @@
-import useSWR from "swr";
-
-const fetcher = (url) => fetch(url).then((res) => res.json());
+import { useState, useEffect } from 'react';
 
 function Glossary() {
-  const { data, error, isLoading } = useSWR("/api/glossary", fetcher);
+  const [glossary, setGlossary] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/glossary")
+      .then((response) => response.json())
+      .then((data) => setGlossary(data));
+  }, []);
 
   return (
     <div className="terms-container">
     {
-      error
+      !glossary.length
       ? (
-        'Ошибка загрузки...'
+        'Загрузка...'
       )
       : (
-        isLoading
-        ? (
-          'Загрузка...'
-        )
-        : (
-          data.map((term) => (
-            <div key={term.id} className="card big hover">
-              <div className="header">{term.name}</div>
-              <div>{term.description}</div>
-            </div>
-          ))
-        )
+        glossary.map((term) => (
+          <div key={term.id} className="card big hover">
+            <div className="header">{term.name}</div>
+            <div>{term.description}</div>
+          </div>
+        ))
       )
     }
     </div>

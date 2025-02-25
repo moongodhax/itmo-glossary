@@ -1,12 +1,12 @@
 const express = require("express");
 
 const glossaryController = require("./controllers/Glossary");
-const graphController = require("./controllers/Graph");
+const relationController = require("./controllers/Relation");
 
 const router = express.Router();
 
-router.get("/glossary", glossaryController.show);
-router.get("/graph", graphController.show);
+router.get("/glossary", glossaryController.showAll);
+router.get("/relations", relationController.showAll);
 
 router.all("*", (req, res) => {
   res.status(404).json({ error: 404 })

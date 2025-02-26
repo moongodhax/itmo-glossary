@@ -1,0 +1,75 @@
+services:
+  db:
+    image: mysql:9.0
+    restart: always
+    container_name: glossary-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - glossary-mysql:/var/lib/mysql
+    ports:
+      - 3306:3306
+    healthcheck:
+        test: mysql ${MYSQL_DATABASE} --user=${MYSQL_USER} --password='${MYSQL_PASSWORD}' --silent --execute "SELECT 1;"
+        timeout: 2s
+        interval: 2s
+        retries: 10
+
+  migrator:
+    build: ./back/
+    image: glossary-back:latest
+    container_name: migrator
+    environment:
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    command: sh -c "npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all"
+    depends_on:
+      db:
+        condition: service_healthy
+        required: true
+
+  back:
+    build: ./back/
+    image: glossary-back:latest
+    container_name: backend
+    environment:
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - 8080:8080
+    healthcheck:
+      test: wget -nv -t1 --spider http://localhost:8080/api/glossary
+      timeout: 2s
+      interval: 2s
+      retries: 10
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+        required: true
+      migrator:
+        condition: service_completed_successfully
+        required: true
+
+  front:
+    build: ./front/
+    image: glossary-front:latest
+    container_name: front
+    ports:
+      - 80:80
+    depends_on:
+      back:
+        condition: service_healthy
+        required: true
+
+volumes:
+  glossary-mysql:
+    driver: local
+    name: glossary-mysql
